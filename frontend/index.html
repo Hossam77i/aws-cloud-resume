@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hossam | Terminal Resume</title>
+    <style>
+        body {
+            background-color: #0c0c0c;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        #terminal {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .prompt { color: #00bfff; font-weight: bold; }
+        .user-input { color: #fff; background: transparent; border: none; font-family: inherit; font-size: 1rem; width: 60%; outline: none; }
+        .output { margin-top: 5px; margin-bottom: 15px; white-space: pre-wrap; line-height: 1.4; color: #d3d3d3; }
+        .highlight { color: #ff00ff; font-weight: bold; }
+        .success { color: #00ff00; }
+        .warning { color: #ffcc00; }
+        .banner { color: #00ff00; margin-bottom: 20px; font-weight: bold;}
+    </style>
+</head>
+<body>
+    <div id="terminal">
+        <div class="banner">
+   __  __                                  ________                __ 
+  / / / /___  ______________ _____ ___    / ____/ /___  __  ______/ / 
+ / /_/ / __ \/ ___/ ___/ __ `/ __ `__ \  / /   / / __ \/ / / / __  /  
+/ __  / /_/ (__  |__  ) /_/ / / / / / / / /___/ / /_/ / /_/ / /_/ /   
+/_/ /_/\____/____/____/\__,_/_/ /_/ /_/  \____/_/\____/\__,_/\__,_/   
+
+v2.0.1 | Cloud Security Architecture Node
+Connection: SECURE (AWS API Gateway -> Lambda -> DynamoDB)
+        </div>
+        <div class="output">Welcome to the interactive resume shell. Type '<span class="highlight">help</span>' to see available commands.</div>
+        <div id="history"></div>
+        <div>
+            <span class="prompt">guest@hossam-cloud:~$</span>
+            <input type="text" id="cmd" class="user-input" autocomplete="off" autofocus>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://vlxzpmaq7e.execute-api.us-east-1.amazonaws.com/visitor";
+        const inputField = document.getElementById('cmd');
+        const historyDiv = document.getElementById('history');
+
+        const commands = {
+            'help': `Available commands:
+  <span class="highlight">whoami</span>       - Display profile information
+  <span class="highlight">skills</span>       - List technical capabilities
+  <span class="highlight">projects</span>     - Show major cloud & OSINT deployments
+  <span class="highlight">metrics</span>      - Fetch live AWS backend metrics (DynamoDB trigger)
+  <span class="highlight">clear</span>        - Clear terminal`,
+            'whoami': `Name: Hossam Eldien Hassan
+Role: Cloud Solutions Architect & Cybersecurity Engineer
+Focus: Threat Intelligence (OSINT), DevSecOps, Highly-Available Cloud Infrastructure.
+Status: Seeking challenging engineering opportunities.`,
+            'skills': `[+] CLOUD: AWS (S3, Lambda, DynamoDB, API Gateway, IAM), GCP, Vercel
+[+] IAC & DEVOPS: Terraform, GitHub Actions CI/CD, Docker
+[+] LANGUAGES: Python (FastAPI), Bash, JavaScript, SQL
+[+] SECURITY: Dark Web Recon, Vulnerability Scanning, Web App Firewalls`,
+            'projects': `1. 🐺 <b>DarkWeb Sentinel</b>: Federated threat intelligence aggregator monitoring dark web leaks and Telegram channels.
+2. ☁️  <b>AWS Cloud Resume</b>: You are looking at it. 100% Serverless. Infrastructure codified entirely in Terraform.`
+        };
+
+        inputField.addEventListener('keydown', async function(e) {
+            if (e.key === 'Enter') {
+                const cmd = this.value.trim().toLowerCase();
+                this.value = '';
+                
+                const promptLine = `<div><span class="prompt">guest@hossam-cloud:~$</span> <span style="color:#fff">${cmd}</span></div>`;
+                let outputHtml = '';
+
+                if (cmd === 'clear') {
+                    historyDiv.innerHTML = '';
+                    return;
+                } else if (cmd === 'metrics') {
+                    outputHtml = `<div class="output warning">Initializing secure connection to AWS API Gateway...</div>`;
+                    historyDiv.innerHTML += promptLine + outputHtml;
+                    window.scrollTo(0, document.body.scrollHeight);
+                    
+                    try {
+                        const res = await fetch(API_URL, { method: 'POST' });
+                        const data = await res.json();
+                        outputHtml = `<div class="output success">[200 OK] Connection established.
+Total Unique Architecture Invocations: <span class="highlight">${data.visitor_count}</span>
+Database: DynamoDB (us-east-1)
+Latency: ~45ms</div>`;
+                    } catch (err) {
+                        outputHtml = `<div class="output" style="color:red">[500 ERROR] Failed to connect to AWS Lambda backbone.</div>`;
+                    }
+                    // Replace the loading line with the result
+                    historyDiv.lastChild.innerHTML = outputHtml;
+                    return;
+                } else if (commands[cmd]) {
+                    outputHtml = `<div class="output">${commands[cmd]}</div>`;
+                } else if (cmd !== '') {
+                    outputHtml = `<div class="output">bash: ${cmd}: command not found</div>`;
+                }
+
+                historyDiv.innerHTML += promptLine + outputHtml;
+                window.scrollTo(0, document.body.scrollHeight);
+            }
+        });
+    </script>
+</body>
+</html>
